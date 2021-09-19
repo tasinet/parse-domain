@@ -3,6 +3,7 @@ import { lookUpTldsInTrie } from "./trie/look-up";
 import {
   ValidationError,
   sanitize,
+  sanitizeDomain,
   SanitizationResultType,
   SanitizationResultValidIp,
 } from "./sanitize";
@@ -140,7 +141,7 @@ let parsedPrivateTrie: TrieRootNode | undefined;
 /**
  * Splits the given hostname in topLevelDomains, a domain and subDomains.
  */
-export const parseDomain = (
+const parseDomainInternal = (
   hostname: string | typeof NO_HOSTNAME
 ): ParseResult => {
   const sanitizationResult = sanitize(hostname);
@@ -201,4 +202,36 @@ export const parseDomain = (
     icann: splitLabelsIntoDomains(labels, indexOfIcannDomain),
     ...splitLabelsIntoDomains(labels, indexOfPublicSuffixDomain),
   };
+};
+
+export const parseDomain = (
+  hostname: string | typeof NO_HOSTNAME
+): ParseResult => {
+  const parseResult = parseDomainInternal(hostname);
+  let labels: Array<string> = [];
+
+  if (parseResult.type == ParseResultType.NotListed) {
+    labels = parseResult.labels.slice(parseResult.labels.length - 2);
+  } else if (
+    parseResult.type == ParseResultType.Listed &&
+    parseResult.icann.domain
+  ) {
+    labels = [parseResult.icann.domain];
+  } else {
+    return parseResult;
+  }
+
+  if (labels.length) {
+    const domainSanitizationResult = sanitizeDomain(labels);
+
+    if (domainSanitizationResult.type === SanitizationResultType.Error) {
+      return {
+        type: ParseResultType.Invalid,
+        hostname,
+        errors: domainSanitizationResult.errors,
+      };
+    }
+  }
+
+  return parseResult;
 };

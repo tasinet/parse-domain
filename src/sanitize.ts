@@ -148,7 +148,7 @@ export const sanitize = (
   for (const label of labels) {
     // According to https://tools.ietf.org/html/rfc6761 labels should
     // only contain ASCII letters, digits and hyphens (LDH).
-    const invalidCharacter = /[^\da-z-]/iu.exec(label);
+    const invalidCharacter = /[^\d_a-z-]/iu.exec(label);
 
     if (invalidCharacter) {
       labelValidationErrors.push(
@@ -181,6 +181,33 @@ export const sanitize = (
   return {
     type: SanitizationResultType.ValidDomain,
     domain: inputTrimmed,
+    labels,
+  };
+};
+
+export const sanitizeDomain = (labels: Array<string>): SanitizationResult => {
+  for (const label of labels) {
+    const labelValidationErrors = [];
+
+    const invalidCharacter = /[^\da-z-]/iu.exec(label);
+
+    if (invalidCharacter) {
+      return {
+        type: SanitizationResultType.Error,
+        errors: [
+          createLabelInvalidCharacterError(
+            label,
+            invalidCharacter[0],
+            invalidCharacter.index + 1
+          ),
+        ],
+      };
+    }
+  }
+
+  return {
+    type: SanitizationResultType.ValidDomain,
+    domain: "",
     labels,
   };
 };
