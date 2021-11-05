@@ -71,9 +71,10 @@ const parsePsl = (listContent: string) => {
   };
 };
 
-export const buildTries = (psl: string) => {
+export const buildTries = (psl: string, icannOverride?: string[]) => {
   const parsedPsl = parsePsl(psl);
-  const icannTrie = createTrieFromList(parsedPsl.icann);
+
+  const icannTrie = createTrieFromList([...parsedPsl.icann, ...(icannOverride ?? [])]);
   const privateTrie = createTrieFromList(parsedPsl.private);
 
   return {

@@ -43,9 +43,9 @@ const parsePsl = (listContent) => {
             .map(normalizeRule),
     };
 };
-export const buildTries = (psl) => {
+export const buildTries = (psl, icannOverride) => {
     const parsedPsl = parsePsl(psl);
-    const icannTrie = createTrieFromList(parsedPsl.icann);
+    const icannTrie = createTrieFromList([...parsedPsl.icann, ...(icannOverride !== null && icannOverride !== void 0 ? icannOverride : [])]);
     const privateTrie = createTrieFromList(parsedPsl.private);
     return {
         icannTrie,

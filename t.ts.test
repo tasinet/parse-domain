@@ -1,0 +1,3 @@
+import { parseDomain } from './';
+
+console.log(parseDomain('mil.sch.gr'));
